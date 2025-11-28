@@ -1,0 +1,14 @@
+# Virtual Environment
+venv/
+env/
+
+# Python compiled files
+__pycache__/
+*.pyc
+
+# IDE settings (Optional but recommended)
+.vscode/
+.idea/
+.DS_Store
+
+# Note: We do NOT ignore .dvc files, because we want those on GitHub!
