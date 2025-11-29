@@ -36,7 +36,7 @@ def main():
     all_valid = True
 
     # Check component scripts
-    print("\n📁 Validating Component Scripts...")
+    print("\n[*] Validating Component Scripts...")
     components = [
         ("src/load_data.py", "Load Data Component"),
         ("src/preprocess.py", "Preprocess Component"),
@@ -53,17 +53,17 @@ def main():
             all_valid = False
 
     # Check MLProject configuration
-    print("\n📋 Validating MLflow Project Configuration...")
+    print("\n[*] Validating MLflow Project Configuration...")
     if not validate_file_exists("MLProject.yaml", "MLProject Configuration"):
         all_valid = False
 
     # Check requirements file
-    print("\n📦 Validating Dependencies...")
+    print("\n[*] Validating Dependencies...")
     if not validate_file_exists("requirements.txt", "Requirements File"):
         all_valid = False
 
     # Check data directory
-    print("\n💾 Validating Data Directory...")
+    print("\n[*] Validating Data Directory...")
     if not os.path.exists("data"):
         print("❌ Data directory NOT FOUND")
         all_valid = False
@@ -71,7 +71,7 @@ def main():
         print("✅ Data directory exists")
 
     # Try importing MLflow
-    print("\n🔧 Validating MLflow Installation...")
+    print("\n[*] Validating MLflow Installation...")
     try:
         import mlflow
         print(f"✅ MLflow installed (version {mlflow.__version__})")
