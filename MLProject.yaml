@@ -1,0 +1,19 @@
+name: diabetes_pipeline
+
+conda_env: requirements.txt
+
+entry_points:
+  main:
+    command: "python src/main.py"
+
+  load_data:
+    command: "python src/load_data.py {data_path} {output_path}"
+
+  preprocess:
+    command: "python src/preprocess.py {input_path} {train_path} {test_path}"
+
+  train:
+    command: "python src/train.py {train_path} {model_path}"
+
+  evaluate:
+    command: "python src/evaluate.py {model_path} {test_path}"

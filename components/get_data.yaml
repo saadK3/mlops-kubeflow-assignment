@@ -1,0 +1,68 @@
+name: Get data
+description: Pull the versioned data from the DVC remote using dvc.api.
+inputs:
+- {name: repo_url, type: String}
+- {name: data_path, type: String}
+outputs:
+- {name: output_csv, type: CSV}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'dvc' 'dvc-s3' 'dvc-gdrive' || PIP_DISABLE_PIP_VERSION_CHECK=1
+      python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn'
+      'dvc' 'dvc-s3' 'dvc-gdrive' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def _make_parent_dirs_and_return_path(file_path: str):
+          import os
+          os.makedirs(os.path.dirname(file_path), exist_ok=True)
+          return file_path
+
+      def get_data(
+          repo_url,
+          data_path,
+          output_csv
+      ):
+          """
+          Pull the versioned data from the DVC remote using dvc.api.
+          """
+          import dvc.api
+          import pandas as pd
+
+          # Get the URL of the data file from the DVC remote
+          # rev='main' ensures we get the latest committed version on the main branch
+          data_url = dvc.api.get_url(
+              path=data_path,
+              repo=repo_url,
+              rev='main'
+          )
+
+          # Read and save locally
+          df = pd.read_csv(data_url)
+          df.to_csv(output_csv, index=False)
+          print(f"Data downloaded from {data_url} and saved to {output_csv}")
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Get data', description='Pull the versioned data from the DVC remote using dvc.api.')
+      _parser.add_argument("--repo-url", dest="repo_url", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--data-path", dest="data_path", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--output-csv", dest="output_csv", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = get_data(**_parsed_args)
+    args:
+    - --repo-url
+    - {inputValue: repo_url}
+    - --data-path
+    - {inputValue: data_path}
+    - --output-csv
+    - {outputPath: output_csv}

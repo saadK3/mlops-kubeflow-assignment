@@ -1,5 +1,6 @@
-kfp>=1.8.0
+kfp>=1.8.0,<2.0.0
 dvc
 scikit-learn
 pandas
 numpy
+mlflow>=2.9.0

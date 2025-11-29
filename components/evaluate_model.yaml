@@ -1,0 +1,82 @@
+name: Evaluate model
+description: Evaluates the model and saves metrics to a JSON file.
+inputs:
+- {name: model_pkl, type: Model}
+- {name: test_csv, type: CSV}
+outputs:
+- {name: metrics_json, type: Metrics}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'dvc' 'dvc-s3' 'dvc-gdrive' || PIP_DISABLE_PIP_VERSION_CHECK=1
+      python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn'
+      'dvc' 'dvc-s3' 'dvc-gdrive' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def _make_parent_dirs_and_return_path(file_path: str):
+          import os
+          os.makedirs(os.path.dirname(file_path), exist_ok=True)
+          return file_path
+
+      def evaluate_model(
+          model_pkl,
+          test_csv,
+          metrics_json
+      ):
+          """
+          Evaluates the model and saves metrics to a JSON file.
+          """
+          import pandas as pd
+          import pickle
+          import json
+          from sklearn.metrics import mean_squared_error, r2_score
+
+          # Load data and model
+          test_df = pd.read_csv(test_csv)
+          X_test = test_df.drop('target', axis=1)
+          y_test = test_df['target']
+
+          with open(model_pkl, 'rb') as f:
+              model = pickle.load(f)
+
+          # Predict
+          y_pred = model.predict(X_test)
+
+          # Calculate metrics
+          mse = mean_squared_error(y_test, y_pred)
+          r2 = r2_score(y_test, y_pred)
+
+          metrics = {
+              "mean_squared_error": mse,
+              "r2_score": r2
+          }
+
+          # Save metrics
+          with open(metrics_json, 'w') as f:
+              json.dump(metrics, f)
+          print(f"Evaluation complete: {metrics}")
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Evaluate model', description='Evaluates the model and saves metrics to a JSON file.')
+      _parser.add_argument("--model-pkl", dest="model_pkl", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--test-csv", dest="test_csv", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--metrics-json", dest="metrics_json", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = evaluate_model(**_parsed_args)
+    args:
+    - --model-pkl
+    - {inputPath: model_pkl}
+    - --test-csv
+    - {inputPath: test_csv}
+    - --metrics-json
+    - {outputPath: metrics_json}

@@ -1,0 +1,73 @@
+name: Preprocess data
+description: Splits the data into train and test sets.
+inputs:
+- {name: input_csv, type: CSV}
+- {name: test_size, type: Float, default: '0.2', optional: true}
+outputs:
+- {name: train_csv, type: CSV}
+- {name: test_csv, type: CSV}
+implementation:
+  container:
+    image: python:3.9
+    command:
+    - sh
+    - -c
+    - (PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install --quiet --no-warn-script-location
+      'pandas' 'scikit-learn' 'dvc' 'dvc-s3' 'dvc-gdrive' || PIP_DISABLE_PIP_VERSION_CHECK=1
+      python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn'
+      'dvc' 'dvc-s3' 'dvc-gdrive' --user) && "$0" "$@"
+    - sh
+    - -ec
+    - |
+      program_path=$(mktemp)
+      printf "%s" "$0" > "$program_path"
+      python3 -u "$program_path" "$@"
+    - |
+      def _make_parent_dirs_and_return_path(file_path: str):
+          import os
+          os.makedirs(os.path.dirname(file_path), exist_ok=True)
+          return file_path
+
+      def preprocess_data(
+          input_csv,
+          train_csv,
+          test_csv,
+          test_size = 0.2
+      ):
+          """
+          Splits the data into train and test sets.
+          """
+          import pandas as pd
+          from sklearn.model_selection import train_test_split
+
+          df = pd.read_csv(input_csv)
+
+          # Split data
+          train_df, test_df = train_test_split(df, test_size=test_size, random_state=42)
+
+          # Save splits
+          train_df.to_csv(train_csv, index=False)
+          test_df.to_csv(test_csv, index=False)
+          print(f"Data split: {len(train_df)} train samples, {len(test_df)} test samples.")
+
+      import argparse
+      _parser = argparse.ArgumentParser(prog='Preprocess data', description='Splits the data into train and test sets.')
+      _parser.add_argument("--input-csv", dest="input_csv", type=str, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--test-size", dest="test_size", type=float, required=False, default=argparse.SUPPRESS)
+      _parser.add_argument("--train-csv", dest="train_csv", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+      _parser.add_argument("--test-csv", dest="test_csv", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+      _parsed_args = vars(_parser.parse_args())
+
+      _outputs = preprocess_data(**_parsed_args)
+    args:
+    - --input-csv
+    - {inputPath: input_csv}
+    - if:
+        cond: {isPresent: test_size}
+        then:
+        - --test-size
+        - {inputValue: test_size}
+    - --train-csv
+    - {outputPath: train_csv}
+    - --test-csv
+    - {outputPath: test_csv}
