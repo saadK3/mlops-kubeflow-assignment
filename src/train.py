@@ -28,4 +28,4 @@ with mlflow.start_run():
     with open(model_path, 'wb') as f:
         pickle.dump(model, f)
 
-    print(f"✅ Model trained and saved to {model_path}")
+    print(f"Model trained and saved to {model_path}")

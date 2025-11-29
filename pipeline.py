@@ -12,7 +12,7 @@ from pathlib import Path
 def validate_file_exists(filepath, description):
     """Check if a file exists"""
     if os.path.exists(filepath):
-        print(f"✅ {description}: {filepath}")
+        print(f"{description}: {filepath}")
         return True
     else:
         print(f"{description} NOT FOUND: {filepath}")
@@ -22,7 +22,7 @@ def validate_python_syntax(filepath):
     """Validate Python file syntax"""
     try:
         py_compile.compile(filepath, doraise=True)
-        print(f"✅ Syntax valid: {filepath}")
+        print(f"Syntax valid: {filepath}")
         return True
     except py_compile.PyCompileError as e:
         print(f"Syntax error in {filepath}: {e}")
@@ -68,13 +68,13 @@ def main():
         print("Data directory NOT FOUND")
         all_valid = False
     else:
-        print("✅ Data directory exists")
+        print("Data directory exists")
 
     # Try importing MLflow
     print("\n[*] Validating MLflow Installation...")
     try:
         import mlflow
-        print(f"✅ MLflow installed (version {mlflow.__version__})")
+        print(f"MLflow installed (version {mlflow.__version__})")
     except ImportError:
         print("MLflow NOT installed")
         all_valid = False
@@ -82,7 +82,7 @@ def main():
     # Final result
     print("\n" + "=" * 60)
     if all_valid:
-        print("✅ VALIDATION PASSED - Pipeline is ready!")
+        print(" VALIDATION PASSED - Pipeline is ready!")
         print("=" * 60)
         sys.exit(0)
     else:
