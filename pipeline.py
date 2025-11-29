@@ -15,7 +15,7 @@ def validate_file_exists(filepath, description):
         print(f"✅ {description}: {filepath}")
         return True
     else:
-        print(f"❌ {description} NOT FOUND: {filepath}")
+        print(f"{description} NOT FOUND: {filepath}")
         return False
 
 def validate_python_syntax(filepath):
@@ -25,7 +25,7 @@ def validate_python_syntax(filepath):
         print(f"✅ Syntax valid: {filepath}")
         return True
     except py_compile.PyCompileError as e:
-        print(f"❌ Syntax error in {filepath}: {e}")
+        print(f"Syntax error in {filepath}: {e}")
         return False
 
 def main():
@@ -65,7 +65,7 @@ def main():
     # Check data directory
     print("\n[*] Validating Data Directory...")
     if not os.path.exists("data"):
-        print("❌ Data directory NOT FOUND")
+        print("Data directory NOT FOUND")
         all_valid = False
     else:
         print("✅ Data directory exists")
@@ -76,7 +76,7 @@ def main():
         import mlflow
         print(f"✅ MLflow installed (version {mlflow.__version__})")
     except ImportError:
-        print("❌ MLflow NOT installed")
+        print("MLflow NOT installed")
         all_valid = False
 
     # Final result
@@ -86,7 +86,7 @@ def main():
         print("=" * 60)
         sys.exit(0)
     else:
-        print("❌ VALIDATION FAILED - Please fix the errors above")
+        print("VALIDATION FAILED - Please fix the errors above")
         print("=" * 60)
         sys.exit(1)
 
