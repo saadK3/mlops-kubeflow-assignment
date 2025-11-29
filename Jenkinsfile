@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    environment {
+        // Set Python path - UPDATE THIS to match your Python installation
+        // To find it, run in terminal: where python
+        PYTHON_HOME = 'C:\\Users\\admin\\AppData\\Local\\Programs\\Python\\Python310'
+        PYTHON = "${PYTHON_HOME}\\python.exe"
+        PIP = "${PYTHON_HOME}\\Scripts\\pip.exe"
+    }
+
     stages {
         stage('Environment Setup') {
             steps {
@@ -13,12 +21,12 @@ pipeline {
                 checkout scm
 
                 // Verify Python installation
-                bat 'python --version'
-                bat 'pip --version'
+                bat "${PYTHON} --version"
+                bat "${PIP} --version"
 
                 // Install dependencies
                 echo 'Installing Python dependencies...'
-                bat 'pip install -r requirements.txt'
+                bat "${PIP} install -r requirements.txt"
 
                 echo '✅ Environment setup complete!'
             }
@@ -32,7 +40,7 @@ pipeline {
 
                 // Run pipeline validation script
                 echo 'Validating MLflow pipeline structure...'
-                bat 'python pipeline.py'
+                bat "${PYTHON} pipeline.py"
 
                 echo '✅ Pipeline validation complete!'
             }
@@ -46,11 +54,11 @@ pipeline {
 
                 // Check syntax of all Python files
                 echo 'Checking Python syntax for all components...'
-                bat 'python -m py_compile src/load_data.py'
-                bat 'python -m py_compile src/preprocess.py'
-                bat 'python -m py_compile src/train.py'
-                bat 'python -m py_compile src/evaluate.py'
-                bat 'python -m py_compile src/main.py'
+                bat "${PYTHON} -m py_compile src/load_data.py"
+                bat "${PYTHON} -m py_compile src/preprocess.py"
+                bat "${PYTHON} -m py_compile src/train.py"
+                bat "${PYTHON} -m py_compile src/evaluate.py"
+                bat "${PYTHON} -m py_compile src/main.py"
 
                 echo '✅ Syntax check complete!'
             }
